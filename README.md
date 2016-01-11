@@ -130,32 +130,55 @@ iOS的三种多线程技术特点:
 {
   [super viewDidLoad];
 
+
   dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
 
       NSLog(@"First Log");
 
   });
-
+  
+  
   NSLog(@"Second Log");
 }
 
- 7:dispatch_sync Block 被添加到一个全局队列中，将在稍后执行。进程将在主线程挂起直到该 Block 完成。同时，全局队列并发处理任务；要记得      Block 在全局队列中将按照 FIFO 顺序出列，但可以并发执行。全局队列处理 dispatch_sync Block 加入之前已经出现在队列中的任务。终于，轮到 dispatch_sync Block 。这个 Block 完成，因此主线程上的任务可以恢复。viewDidLoad 方法完成，主队列继续处理其他任务
+ 7:dispatch_sync Block 被添加到一个全局队列中，将在稍后执行。进程将在主线程挂起直到该 Block 完成。同时，全局队列并发处理任务；要记得
+ 
+ Block 在全局队列中将按照 FIFO 顺序出列，但可以并发执行。全局队列处理 dispatch_sync Block 加入之前已经出现在队列中的任务。终于，轮到
+ 
+ dispatch_sync Block 。这个 Block 完成，因此主线程上的任务可以恢复。viewDidLoad 方法完成，主队列继续处理其他任务
+ 
  dispatch_sync 添加任务到一个队列并等待直到任务完成。dispatch_async做类似的事情，但不同之处是它不会等待任务的完成，而是立即继续“调用线程”的其它任务。
  
  - (void)viewDidLoad
 {
   [super viewDidLoad];
 
+
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+
 
       NSLog(@"First Log");
 
   });
+  
 
   NSLog(@"Second Log");
+  
 }
 
-viewDidLoad 在主线程执行。主线程目前在 viewDidLoad 内，正要到达 dispatch_async 。dispatch_async Block 被添加到一个全局队列中，将在稍后执行。viewDidLoad 在添加 dispatch_async到全局队列后继续进行，主线程把注意力转向剩下的任务。同时，全局队列并发地处理它未完成地任务。记住 Block 在全局队列中将按照 FIFO 顺序出列，但可以并发执行。添加到 dispatch_async 的代码块开始执行。dispatch_async Block 完成，两个 NSLog 语句将它们的输出放在控制台上。
+viewDidLoad 在主线程执行。主线程目前在 viewDidLoad 内，正要到达 dispatch_async 。dispatch_async Block
 
-    总结：除了上面这些，你还通过利用 dispatch_after 来延迟显示提示信息，以及利用 dispatch_async 将 CPU 密集型任务从 ViewController 的初始化过程中剥离出来异步执行，达到了增强应用的用户体验的目的。
+被添加到一个全局队列中，将在稍后执行。viewDidLoad 在添加 
+
+dispatch_async到全局队列后继续进行，主线程把注意力转向剩下的任务。同时，全局队列并发地处理它未完成地任务。记住 Block 在全局队列中将按照 
+
+FIFO 顺序出列，但可以并发执行。添加到 dispatch_async 的代码块开始执行。dispatch_async Block 完成，两个 NSLog 
+
+语句将它们的输出放在控制台上。
+
+   
+   
+    总结：除了上面这些，你还通过利用 dispatch_after 来延迟显示提示信息，以及利用 dispatch_async 将 CPU 密集型任务从 ViewController 
+    
+    的初始化过程中剥离出来异步执行，达到了增强应用的用户体验的目的。
     
