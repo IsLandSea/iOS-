@@ -99,28 +99,50 @@ iOS的三种多线程技术特点:
 - (void)viewDidLoad
 {   
     [super viewDidLoad];
+
+
     NSAssert(_image, @"Image not set; required to use view controller");
+
+
     self.photoImageView.image = _image;
 
     //Resize if neccessary to ensure it's not pixelated
+   
     if (_image.size.height <= self.photoImageView.bounds.size.height &&
         _image.size.width <= self.photoImageView.bounds.size.width) {
+        
         [self.photoImageView setContentMode:UIViewContentModeCenter];
+    
     }
      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{ // 1
+    
         UIImage *overlayImage = [self faceOverlayImageFromImage:_image];
+    
         dispatch_async(dispatch_get_main_queue(), ^{ // 2
+    
             [self fadeInNewImage:overlayImage]; // 3
+    
         });
+    
     });
 }
     下面来说明上面的新代码所做的事：你首先将工作从主线程移到全局线程。
+    
     因为这是一个 dispatch_async() ，Block会被异步地提交，意味着调用线程地执行将会继续。
+    
     这就使得 viewDidLoad更早地在主线程完成，让加载过程感觉起来更加快速。同时，一个人脸检测过程会启动并将在稍后完成。
+    
     在这里，人脸检测过程完成，并生成了一个新的图像。既然你要使用此新图像更新你的 UIImageView ，
+    
     那么你就添加一个新的 Block到主线程。记住——你必须总是在主线程访问 UIKit 的类。
+   
    最后，你用 fadeInNewImage: 更新 UI ，它执行一个淡入过程切换到新的曲棍球眼睛图像。
-编译并运行你的应用；选择一个图像然后你会注意到视图控制器加载明显变快，曲棍球眼睛稍微在之后就加上了。这给应用带来了不错的效果，和之前的显示差别巨大。dispatch_async 添加一个 Block 到队列就立即返回了。任务会在之后由 GCD 决定执行。当你需要在后台执行一个基于网络或 CPU 紧张的任务时就使用 dispatch_async ，这样就不会阻塞当前线程。
+
+编译并运行你的应用；选择一个图像然后你会注意到视图控制器加载明显变快，曲棍球眼睛稍微在之后就加上了。这给应用带来了不错的效果，和之前的显
+
+示差别巨大。dispatch_async 添加一个 Block 到队列就立即返回了。任务会在之后由 GCD 决定执行。当你需要在后台执行一个基于网络或 CPU 
+
+紧张的任务时就使用 dispatch_async ，这样就不会阻塞当前线程。
 
  5:dispatch_after 延后工作
  
